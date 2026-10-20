@@ -1,0 +1,12 @@
+{
+  "active_products": 94,
+  "days": 272,
+  "panel_rows": 25568,
+  "zero_demand_rate": 0.09625312891113892,
+  "mean_demand": 2.4238501251564455,
+  "median_demand": 2.0,
+  "p90": 5.0,
+  "p95": 5.0,
+  "p99": 7.0,
+  "max": 10.0
+}

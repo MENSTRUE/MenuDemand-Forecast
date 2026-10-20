@@ -1,0 +1,12 @@
+{
+  "receipt_rows": 53820,
+  "declared_total_units": 61973,
+  "parsed_total_units": 61973,
+  "active_products": 94,
+  "catalog_products": 96,
+  "inactive_catalog_products": [
+    "Add on Aren",
+    "Add on Simple Syrup"
+  ],
+  "unmapped_transaction_items": []
+}

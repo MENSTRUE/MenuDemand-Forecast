@@ -1,0 +1,29 @@
+{
+  "selection_metric": "validation_MAE",
+  "operational_champion": {
+    "name": "Rolling-28",
+    "type": "baseline",
+    "validation_metrics": {
+      "MAE": 1.2894769095009315,
+      "RMSE": 1.58267549852879,
+      "WAPE": 0.5479853746953062,
+      "Bias": 0.24984067065398566,
+      "MeanActual": 2.3531228551818804,
+      "MeanPred": 2.602963525835866,
+      "N": 2914
+    }
+  },
+  "best_learned_model": {
+    "name": "LGBM-L1",
+    "validation_metrics": {
+      "MAE": 1.32675888210725,
+      "RMSE": 1.6206689007439068,
+      "WAPE": 0.5638289897127792,
+      "Bias": 0.46368811684602823,
+      "MeanActual": 2.3531228551818804,
+      "MeanPred": 2.816810972027908,
+      "N": 2914
+    }
+  },
+  "selection_note": "Held-out test is not used for champion selection."
+}

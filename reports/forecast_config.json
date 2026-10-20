@@ -1,0 +1,55 @@
+{
+  "project": "MenuDemand Forecast",
+  "portfolio_progress": "13%",
+  "task": "next-day product-level unit demand forecasting",
+  "granularity": "Product x Day",
+  "forecast_protocol": "rolling one-day-ahead",
+  "selection_metric": "validation_MAE",
+  "operational_champion": {
+    "name": "Rolling-28",
+    "type": "baseline"
+  },
+  "best_learned_model": "LGBM-L1",
+  "best_learned_model_file": "menudemand_best_learned_lgbm.joblib",
+  "history_required_days": 28,
+  "feature_columns": [
+    "ProductId",
+    "Category",
+    "Price",
+    "lag_1",
+    "lag_2",
+    "lag_3",
+    "lag_7",
+    "lag_14",
+    "lag_28",
+    "rolling_mean_3",
+    "rolling_mean_7",
+    "rolling_mean_14",
+    "rolling_mean_28",
+    "rolling_std_7",
+    "rolling_std_28",
+    "expanding_mean",
+    "day_of_week",
+    "day_of_month",
+    "week_of_year",
+    "month",
+    "is_weekend",
+    "dow_sin",
+    "dow_cos",
+    "month_sin",
+    "month_cos"
+  ],
+  "categorical_columns": [
+    "ProductId",
+    "Category"
+  ],
+  "train_end": "2025-07-31",
+  "validation_period": [
+    "2025-08-01",
+    "2025-08-31"
+  ],
+  "test_period": [
+    "2025-09-01",
+    "2025-09-30"
+  ]
+}

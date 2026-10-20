@@ -1,0 +1,165 @@
+{
+  "project": "MenuDemand Forecast",
+  "portfolio_progress": "13%",
+  "dataset": "Anonymous Transactional Dataset",
+  "dataset_summary": {
+    "receipts": 53820,
+    "parsed_units": 61973,
+    "catalog_products": 96,
+    "active_products": 94,
+    "outlets": 3,
+    "days": 272,
+    "start_date": "2025-01-02",
+    "end_date": "2025-09-30"
+  },
+  "raw_audit": {
+    "transaction_rows": 53820,
+    "product_catalog_rows": 96,
+    "transaction_null_cells": 0,
+    "product_null_cells": 0,
+    "duplicate_receipts": 0,
+    "date_min": "2025-01-02",
+    "date_max": "2025-09-30",
+    "unique_dates": 272,
+    "calendar_days_in_range": 272,
+    "outlets": [
+      "SHOP001",
+      "SHOP002",
+      "SHOP003"
+    ],
+    "loyalty_receipts": 1733,
+    "missing_calendar_days": 0
+  },
+  "item_parsing_audit": {
+    "receipt_rows": 53820,
+    "declared_total_units": 61973,
+    "parsed_total_units": 61973,
+    "active_products": 94,
+    "catalog_products": 96,
+    "inactive_catalog_products": [
+      "Add on Aren",
+      "Add on Simple Syrup"
+    ],
+    "unmapped_transaction_items": []
+  },
+  "product_day_panel": {
+    "active_products": 94,
+    "days": 272,
+    "panel_rows": 25568,
+    "zero_demand_rate": 0.09625312891113892,
+    "mean_demand": 2.4238501251564455,
+    "median_demand": 2.0,
+    "p90": 5.0,
+    "p95": 5.0,
+    "p99": 7.0,
+    "max": 10.0
+  },
+  "granularity_decision": {
+    "product_day_zero_rate": 0.09625312891113892,
+    "outlet_product_day_zero_rate": 0.4682285148101794,
+    "product_day_mean": 2.4238501251564455,
+    "outlet_product_day_mean": 0.8079500417188152
+  },
+  "temporal_split": {
+    "train_end": "2025-07-31",
+    "validation": [
+      "2025-08-01",
+      "2025-08-31"
+    ],
+    "test": [
+      "2025-09-01",
+      "2025-09-30"
+    ]
+  },
+  "selection": {
+    "selection_metric": "validation_MAE",
+    "operational_champion": {
+      "name": "Rolling-28",
+      "type": "baseline",
+      "validation_metrics": {
+        "MAE": 1.2894769095009315,
+        "RMSE": 1.58267549852879,
+        "WAPE": 0.5479853746953062,
+        "Bias": 0.24984067065398566,
+        "MeanActual": 2.3531228551818804,
+        "MeanPred": 2.602963525835866,
+        "N": 2914
+      }
+    },
+    "best_learned_model": {
+      "name": "LGBM-L1",
+      "validation_metrics": {
+        "MAE": 1.32675888210725,
+        "RMSE": 1.6206689007439068,
+        "WAPE": 0.5638289897127792,
+        "Bias": 0.46368811684602823,
+        "MeanActual": 2.3531228551818804,
+        "MeanPred": 2.816810972027908,
+        "N": 2914
+      }
+    },
+    "selection_note": "Held-out test is not used for champion selection."
+  },
+  "official_test": {
+    "test_start": "2025-09-01",
+    "test_end": "2025-09-30",
+    "forecast_protocol": "rolling one-day-ahead",
+    "selection_rule": "validation MAE only",
+    "operational_champion": {
+      "name": "Rolling-28",
+      "type": "baseline",
+      "metrics": {
+        "MAE": 1.2314842958459982,
+        "RMSE": 1.540688734282308,
+        "WAPE": 0.5460354896675652,
+        "Bias": 0.04146403242147923,
+        "MeanActual": 2.25531914893617,
+        "MeanPred": 2.2967831813576494,
+        "N": 2820
+      }
+    },
+    "best_learned_model": {
+      "name": "LGBM-L1",
+      "metrics": {
+        "MAE": 1.2234185546672556,
+        "RMSE": 1.5437866936075686,
+        "WAPE": 0.5424591704656699,
+        "Bias": -0.027325136832312323,
+        "MeanActual": 2.25531914893617,
+        "MeanPred": 2.227994012103858,
+        "N": 2820
+      }
+    },
+    "note": "Test results do not retroactively alter champion selection."
+  },
+  "next_day_forecast": {
+    "date": "2025-10-01",
+    "operational_champion": "Rolling-28",
+    "artifact": "reports/next_day_forecast.csv"
+  },
+  "limitations": [
+    "Dataset is anonymized and may be synthetic or heavily curated.",
+    "No promotion, weather, stockout, event, or inventory-on-hand features are available.",
+    "Evaluation is rolling one-day-ahead, not recursive multi-week forecasting.",
+    "MVP forecasts product-level demand across outlets, not outlet-specific demand.",
+    "Revenue is not the primary demand target.",
+    "External business shocks are not validated.",
+    "Operational champion may be a simple baseline rather than a learned model."
+  ],
+  "claim_boundaries": {
+    "supported": [
+      "next-day menu-item demand forecasting",
+      "product-level daily unit forecasting",
+      "strict temporal held-out evaluation",
+      "baseline-versus-ML validation comparison",
+      "historical lag/rolling/calendar features"
+    ],
+    "unsupported": [
+      "inventory optimization proven",
+      "stockout prediction",
+      "causal promotion uplift",
+      "universal restaurant demand forecasting",
+      "long-horizon recursive forecasting"
+    ]
+  }
+}

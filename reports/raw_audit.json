@@ -1,0 +1,18 @@
+{
+  "transaction_rows": 53820,
+  "product_catalog_rows": 96,
+  "transaction_null_cells": 0,
+  "product_null_cells": 0,
+  "duplicate_receipts": 0,
+  "date_min": "2025-01-02",
+  "date_max": "2025-09-30",
+  "unique_dates": 272,
+  "calendar_days_in_range": 272,
+  "outlets": [
+    "SHOP001",
+    "SHOP002",
+    "SHOP003"
+  ],
+  "loyalty_receipts": 1733,
+  "missing_calendar_days": 0
+}
