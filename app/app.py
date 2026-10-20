@@ -47,9 +47,9 @@ def load_forecaster():
 forecaster = load_forecaster()
 
 
-# ---------------------------------------------------------
+# =========================================================
 # SIDEBAR
-# ---------------------------------------------------------
+# =========================================================
 
 with st.sidebar:
     st.header("MenuDemand")
@@ -78,9 +78,9 @@ with st.sidebar:
     )
 
 
-# ---------------------------------------------------------
+# =========================================================
 # HEADER
-# ---------------------------------------------------------
+# =========================================================
 
 st.title("☕ MenuDemand Forecast")
 
@@ -92,9 +92,9 @@ st.write(
 )
 
 
-# ---------------------------------------------------------
-# FORMAT EXPLANATION
-# ---------------------------------------------------------
+# =========================================================
+# REQUIRED FORMAT
+# =========================================================
 
 with st.expander(
     "📄 Required CSV format",
@@ -102,7 +102,7 @@ with st.expander(
 ):
     st.markdown(
         """
-        Your CSV must contain:
+        Required columns:
         """
     )
 
@@ -148,13 +148,14 @@ with st.expander(
     )
 
     st.warning(
-        "Every product must have at least 28 daily rows."
+        "Every product must contain at least "
+        "28 days of historical demand."
     )
 
 
-# ---------------------------------------------------------
-# UPLOAD
-# ---------------------------------------------------------
+# =========================================================
+# STEP 1 — UPLOAD
+# =========================================================
 
 st.subheader("1. Upload Sales History")
 
@@ -176,16 +177,18 @@ try:
     history_df = pd.read_csv(
         uploaded_file
     )
+
 except Exception as exc:
     st.error(
         f"Could not read CSV: {exc}"
     )
+
     st.stop()
 
 
-# ---------------------------------------------------------
-# VALIDATION
-# ---------------------------------------------------------
+# =========================================================
+# STEP 2 — VALIDATION
+# =========================================================
 
 st.subheader("2. Validate Data")
 
@@ -209,11 +212,13 @@ st.success(
 
 c1, c2, c3, c4 = st.columns(4)
 
+
 with c1:
     st.metric(
         "Rows",
         f"{validation.rows:,}",
     )
+
 
 with c2:
     st.metric(
@@ -221,16 +226,34 @@ with c2:
         validation.products,
     )
 
+
 with c3:
-    st.metric(
-        "Start",
-        validation.min_date.date(),
+    start_date = (
+        validation.min_date.strftime(
+            "%Y-%m-%d"
+        )
+        if validation.min_date is not None
+        else "-"
     )
 
+    st.metric(
+        "Start",
+        start_date,
+    )
+
+
 with c4:
+    last_date = (
+        validation.max_date.strftime(
+            "%Y-%m-%d"
+        )
+        if validation.max_date is not None
+        else "-"
+    )
+
     st.metric(
         "Last Date",
-        validation.max_date.date(),
+        last_date,
     )
 
 
@@ -244,9 +267,9 @@ with st.expander(
     )
 
 
-# ---------------------------------------------------------
-# METHOD
-# ---------------------------------------------------------
+# =========================================================
+# STEP 3 — METHOD
+# =========================================================
 
 st.subheader("3. Choose Forecast Method")
 
@@ -254,6 +277,7 @@ st.subheader("3. Choose Forecast Method")
 methods = [
     "Rolling-28",
 ]
+
 
 if forecaster.model is not None:
     methods.append(
@@ -283,17 +307,17 @@ else:
         """
         **LightGBM L1 — Best Learned Model**
 
-        Preserved for comparison.
+        Preserved as a learned-model comparison.
 
-        It was not the operational champion because
+        It is not the operational champion because
         Rolling-28 achieved lower validation MAE.
         """
     )
 
 
-# ---------------------------------------------------------
-# INFERENCE
-# ---------------------------------------------------------
+# =========================================================
+# STEP 4 — GENERATE FORECAST
+# =========================================================
 
 st.subheader("4. Generate Forecast")
 
@@ -305,48 +329,59 @@ generate = st.button(
 )
 
 
-if not generate:
-    st.stop()
+if generate:
+    try:
+        with st.spinner(
+            "Generating forecast..."
+        ):
+            forecast_df = forecaster.forecast(
+                history_df,
+                method=method,
+            )
 
+        st.session_state[
+            "forecast_df"
+        ] = forecast_df
 
-try:
-    with st.spinner(
-        "Generating forecast..."
-    ):
-        forecast_df = forecaster.forecast(
-            history_df,
-            method=method,
+        st.session_state[
+            "forecast_method"
+        ] = method
+
+    except Exception as exc:
+        st.error(
+            f"Forecast failed: {exc}"
         )
 
-except Exception as exc:
-    st.error(
-        f"Forecast failed: {exc}"
-    )
+        st.stop()
+
+
+if "forecast_df" not in st.session_state:
     st.stop()
 
 
-# Keep forecast in session state.
-st.session_state[
+forecast_df = st.session_state[
     "forecast_df"
-] = forecast_df
+]
 
 
-# ---------------------------------------------------------
-# RESULT
-# ---------------------------------------------------------
+# =========================================================
+# FORECAST RESULT
+# =========================================================
 
 st.success(
-    "Forecast generated successfully."
+    "✅ Forecast generated successfully."
 )
 
 
 forecast_date = pd.to_datetime(
-    forecast_df["forecast_date"].iloc[0]
+    forecast_df[
+        "forecast_date"
+    ].iloc[0]
 )
 
 
 st.subheader(
-    f"Forecast for {forecast_date.date()}"
+    f"Forecast for {forecast_date.strftime('%Y-%m-%d')}"
 )
 
 
@@ -381,15 +416,17 @@ with m3:
 with m4:
     st.metric(
         "Method",
-        forecast_df[
-            "method"
-        ].iloc[0],
+        str(
+            forecast_df[
+                "method"
+            ].iloc[0]
+        ),
     )
 
 
-# ---------------------------------------------------------
+# =========================================================
 # TOP PRODUCTS
-# ---------------------------------------------------------
+# =========================================================
 
 st.divider()
 
@@ -404,16 +441,30 @@ max_top = min(
 )
 
 
-top_n = st.slider(
-    "Products to display",
-    min_value=5,
-    max_value=max_top,
-    value=min(15, max_top),
-)
+if max_top >= 5:
+    top_n = st.slider(
+        "Products to display",
+        min_value=5,
+        max_value=max_top,
+        value=min(
+            15,
+            max_top,
+        ),
+    )
+
+else:
+    top_n = max_top
 
 
-top_df = forecast_df.head(
-    top_n
+top_df = (
+    forecast_df
+    .sort_values(
+        "forecast_units",
+        ascending=False,
+    )
+    .head(
+        top_n
+    )
 )
 
 
@@ -436,36 +487,48 @@ st.bar_chart(
 )
 
 
-# ---------------------------------------------------------
-# TABLE
-# ---------------------------------------------------------
+# =========================================================
+# FORECAST TABLE
+# =========================================================
 
 st.subheader(
     "Forecast Table"
 )
 
 
-table = forecast_df[
-    [
-        "ProductDisplay",
-        "Category",
+table_columns = [
+    "ProductDisplay",
+    "Category",
+    "forecast_units",
+    "forecast_units_rounded",
+    "method",
+]
+
+
+if "Price" in forecast_df.columns:
+    table_columns.insert(
+        2,
         "Price",
-        "forecast_units",
-        "forecast_units_rounded",
-        "method",
-    ]
+    )
+
+
+table = forecast_df[
+    table_columns
 ].copy()
 
 
+rename_map = {
+    "ProductDisplay": "Product",
+    "Category": "Category",
+    "Price": "Price",
+    "forecast_units": "Forecast",
+    "forecast_units_rounded": "Rounded",
+    "method": "Method",
+}
+
+
 table = table.rename(
-    columns={
-        "ProductDisplay": "Product",
-        "Category": "Category",
-        "Price": "Price",
-        "forecast_units": "Forecast",
-        "forecast_units_rounded": "Rounded",
-        "method": "Method",
-    }
+    columns=rename_map
 )
 
 
@@ -476,27 +539,34 @@ st.dataframe(
 )
 
 
-# ---------------------------------------------------------
+# =========================================================
 # PRODUCT INSPECTOR
-# ---------------------------------------------------------
+# =========================================================
 
 st.subheader(
     "Product Inspector"
 )
 
 
-selected_product = st.selectbox(
-    "Choose product",
+product_names = (
     forecast_df[
         "ProductDisplay"
-    ].tolist(),
+    ]
+    .astype(str)
+    .tolist()
+)
+
+
+selected_product = st.selectbox(
+    "Choose product",
+    product_names,
 )
 
 
 product = forecast_df[
     forecast_df[
         "ProductDisplay"
-    ]
+    ].astype(str)
     == selected_product
 ].iloc[0]
 
@@ -507,7 +577,7 @@ p1, p2, p3, p4 = st.columns(4)
 with p1:
     st.metric(
         "Forecast",
-        f"{product['forecast_units']:.2f}",
+        f"{float(product['forecast_units']):.2f}",
     )
 
 
@@ -525,20 +595,95 @@ with p2:
 with p3:
     st.metric(
         "Category",
-        product["Category"],
+        str(
+            product[
+                "Category"
+            ]
+        ),
     )
 
 
 with p4:
-    st.metric(
-        "Price",
-        f"{float(product['Price']):,.0f}",
+    if "Price" in product.index:
+        price = pd.to_numeric(
+            product["Price"],
+            errors="coerce",
+        )
+
+        if pd.notna(price):
+            st.metric(
+                "Price",
+                f"{float(price):,.0f}",
+            )
+        else:
+            st.metric(
+                "Price",
+                "-",
+            )
+
+    else:
+        st.metric(
+            "Price",
+            "-",
+        )
+
+
+# =========================================================
+# OPTIONAL PRODUCT HISTORY
+# =========================================================
+
+st.subheader(
+    "Recent Product History"
+)
+
+
+selected_history = history_df[
+    history_df[
+        "ProductDisplay"
+    ].astype(str)
+    == selected_product
+].copy()
+
+
+if not selected_history.empty:
+    selected_history[
+        "Date"
+    ] = pd.to_datetime(
+        selected_history[
+            "Date"
+        ],
+        errors="coerce",
+    )
+
+    selected_history = (
+        selected_history
+        .sort_values(
+            "Date"
+        )
+        .tail(28)
+    )
+
+    history_chart = (
+        selected_history[
+            [
+                "Date",
+                "demand",
+            ]
+        ]
+        .set_index(
+            "Date"
+        )
+    )
+
+    st.line_chart(
+        history_chart,
+        use_container_width=True,
     )
 
 
-# ---------------------------------------------------------
-# SAVE
-# ---------------------------------------------------------
+# =========================================================
+# STEP 5 — EXPORT
+# =========================================================
 
 st.divider()
 
@@ -557,17 +702,23 @@ with col_save:
         "💾 Save to tests/results",
         use_container_width=True,
     ):
-        output_path = save_forecast_result(
-            forecast_df,
-            ROOT
-            / "tests"
-            / "results",
-        )
+        try:
+            output_path = save_forecast_result(
+                forecast_df,
+                ROOT
+                / "tests"
+                / "results",
+            )
 
-        st.success(
-            f"Saved: "
-            f"{output_path.relative_to(ROOT)}"
-        )
+            st.success(
+                "Saved: "
+                f"{output_path.relative_to(ROOT)}"
+            )
+
+        except Exception as exc:
+            st.error(
+                f"Could not save result: {exc}"
+            )
 
 
 with col_download:
@@ -577,40 +728,55 @@ with col_download:
             forecast_df
         ),
         file_name=(
-            f"menudemand_"
-            f"{forecast_date.date()}"
-            f".csv"
+            "menudemand_"
+            f"{forecast_date.strftime('%Y-%m-%d')}"
+            ".csv"
         ),
         mime="text/csv",
         use_container_width=True,
     )
 
 
-# ---------------------------------------------------------
+# =========================================================
 # INTERPRETATION
-# ---------------------------------------------------------
+# =========================================================
 
 with st.expander(
     "⚠️ How to interpret this forecast",
 ):
     st.markdown(
         """
-        Forecast values estimate **next-day visible product demand**
-        based on historical sales.
+        The forecast estimates **next-day product demand**
+        using historical daily sales.
 
-        They are **not guaranteed sales**.
+        ### Rolling-28
 
-        The MVP does not currently account for:
+        The operational default uses the mean demand
+        from the previous 28 days for each product.
 
+        ### LightGBM
+
+        The LightGBM model is preserved as the best
+        learned-model experiment.
+
+        It is shown as a comparison option rather than
+        replacing the operational champion.
+
+        ### Important limitations
+
+        This MVP currently does not explicitly model:
+
+        - stock availability;
         - stockouts;
         - promotions;
+        - discounts;
         - weather;
-        - public events;
         - holidays;
-        - inventory capacity;
-        - outlet-specific demand.
+        - public events;
+        - inventory constraints;
+        - outlet-level demand differences.
 
-        The operational default is Rolling-28 because it achieved
-        the lowest validation MAE in the project evaluation.
+        Forecast values are therefore estimates based on
+        historical demand patterns, not guaranteed sales.
         """
     )
